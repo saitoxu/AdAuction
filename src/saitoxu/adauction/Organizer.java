@@ -11,25 +11,40 @@ public class Organizer {
 		double budget[] = new double[ads.length]; // 広告ごとの予算
 		double cpa[] = new double[ads.length]; // 広告ごとのcpa
 		double icvr[][] = new double[ads.length][adSpaces.length]; // 広告，広告枠ごとのicvr
-		long start[] = new long[adSpaces.length]; // インプレッション数の初期値（他の広告が獲得してる分）
-		double p[] = new double[adSpaces.length]; // 広告枠への入札額
-		long x[][] = new long[ads.length][adSpaces.length]; // 今のインプレッション数
-		long y[][] = new long[ads.length][adSpaces.length]; // 前のステップでのインプレッション数
+		long sum[] = new long[adSpaces.length]; // 各広告枠のインプレッション数の合計値
+		double price[] = new double[adSpaces.length]; // 広告枠への入札額
+		long current[][] = new long[ads.length][adSpaces.length]; // 今のインプレッション数
+		long previous[][] = new long[ads.length][adSpaces.length]; // 前のステップでのインプレッション数
 		
 		ValuesSetter setter = new ValuesSetter(ads, adSpaces);
+		MarketModel mM = new MarketModel();
 		bid = setter.setBid(bid[0].length);
 		imp = setter.setImp(imp[0].length);
 		budget = setter.setBudget();
 		cpa = setter.setCpa();
 		icvr = setter.setIcvr();
-		start = setter.setStart();
+		sum = setter.setStart(); // 各広告枠のインプレッション数の初期値（他の広告が獲得してる分）
+		price = mM.setBid(adSpaces.length, bid, imp, sum);
 		
-		System.out.println(bid[0][0] + ", " + imp[0][0]);
-		System.out.println(bid[1][0] + ", " + imp[1][0]);
-		System.out.println(bid[2][0] + ", " + imp[2][0]);
-		System.out.println(budget[0] + ", " + budget[1] + ", " + budget[2]);
-		System.out.println(cpa[0] + ", " + cpa[1] + ", " + cpa[2]);
-		System.out.println(icvr[2][0] + ", " + icvr[2][1] + ", " + icvr[2][2]);
-		System.out.println(start[0] + ", " + start[1] + ", " + start[2]);
+		for (int i = 0; i < ads.length; i++) {
+			System.out.println("budget[" + i + "] = " + budget[i] + ", cpa[" + i + "] = " + cpa[i]);
+		}
+		for (int i = 0; i < ads.length; i++) {
+			for (int j = 0; j < adSpaces.length; j++) {
+				System.out.println("icvr[" + i + "][" + j + "] = " + icvr[i][j]);
+			}
+		}
+		for (int i = 0; i < adSpaces.length; i++) {
+			System.out.println("sum[" + i + "] = " + sum[i]);
+		}
+		for (int i = 0; i < price.length; i++) {
+			System.out.println("price[" + i + "] = " + price[i]);
+		}
+		System.out.println("boolean = " + mM.isEndCalculation(current, previous));
+//		for (int i = 0; i < adSpaces.length; i++) {
+//			for (int j = 0; bid[i][j] != 0; j++) {
+//				System.out.println("bid[" + i + "][" + j + "] = " + bid[i][j] + ", imp[" + i + "][" + j + "] = "  + imp[i][j]);
+//			}
+//		}
 	}
 }

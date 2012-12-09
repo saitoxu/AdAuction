@@ -148,7 +148,6 @@ public class ValuesSetter {
 						if (Integer.parseInt(sT.nextToken()) == adSpaces[j]) {
 							if (temp == 0) {
 								start[j] += Long.parseLong(sT.nextToken());
-								System.out.println(start[j]);
 							} else if (temp == ads[i]) {
 								start[j] -= 3 * Long.parseLong(sT.nextToken());
 							}
