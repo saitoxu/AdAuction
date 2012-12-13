@@ -19,6 +19,7 @@ public class MarketModel {
 		return price;
 	}
 	
+	// ‚±‚ê•ÏX‚·‚é•K—v‚ ‚é‚©‚à
 	public boolean isEndCalculation(long[][] current, long[][] previous) {
 		boolean b = true;
 		
