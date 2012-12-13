@@ -31,6 +31,7 @@ public class Lp {
 
 		try {
 		    lp = GLPK.glp_create_prob();
+		    GLPK._glp_lpx_set_int_parm(lp, GLPK.LPX_K_MSGLEV, 1);
 	    	GLPK.glp_set_prob_name(lp, "myProblem");
 
 	    	// ïœêîÇÃêßñÒ
@@ -45,24 +46,38 @@ public class Lp {
 		    	GLPK.glp_set_col_bnds(lp, i, GLPKConstants.GLP_DB, lowerLimit, previousImps[i - 1] + maxChange);
 		    	// System.out.println(lowerLimit + ", " + (previousImps[i - 1] + maxChange));
 	    	}
-		    // GLPK.glp_set_col_name(lp, 1, "x1");
-		    // GLPK.glp_set_col_kind(lp, 1, GLPKConstants.GLP_CV);
-	    	// GLPK.glp_set_col_bnds(lp, 1, GLPKConstants.GLP_DB, 0, 0.5);
-	    	// GLPK.glp_set_col_name(lp, 2, "x2");
-		    // GLPK.glp_set_col_kind(lp, 2, GLPKConstants.GLP_CV);
-		    // GLPK.glp_set_col_bnds(lp, 2, GLPKConstants.GLP_DB, 0, 0.5);
-
+	    	
 		    // êßñÒèåèÅió\éZêßñÒÇ∆CPAêßñÒÇÃ2Ç¬Åj
 	    	GLPK.glp_add_rows(lp, 2);
 		    GLPK.glp_set_row_name(lp, 1, "c1");
-		    GLPK.glp_set_row_bnds(lp, 1, GLPKConstants.GLP_DB, 0, 0.2);
-	    	ind = GLPK.new_intArray(3);
-		    GLPK.intArray_setitem(ind, 1, 1);
-		    GLPK.intArray_setitem(ind, 2, 2);
-	    	val = GLPK.new_doubleArray(3);
-		    GLPK.doubleArray_setitem(val, 1, 1.);
-		    GLPK.doubleArray_setitem(val, 2, -1.);
-	    	GLPK.glp_set_mat_row(lp, 1, 2, ind, val);
+		    GLPK.glp_set_row_bnds(lp, 1, GLPKConstants.GLP_UP, 0.0, budget);
+	    	ind = GLPK.new_intArray(adSpaceLength);
+	    	for (int i = 1; i <= adSpaceLength; i++) {
+	    		GLPK.intArray_setitem(ind, i, i);
+	    	}
+	    	
+	    	val = GLPK.new_doubleArray(adSpaceLength);
+	    	for (int i = 1; i <= adSpaceLength; i++) {
+	    		GLPK.doubleArray_setitem(val, i, price[i - 1]);
+	    	}
+	    	
+	    	GLPK.glp_set_mat_row(lp, 1, adSpaceLength, ind, val);
+		    GLPK.delete_intArray(ind);
+	    	GLPK.delete_doubleArray(val);
+	    	
+	    	GLPK.glp_set_row_name(lp, 2, "c2");
+		    GLPK.glp_set_row_bnds(lp, 2, GLPKConstants.GLP_UP, 0.0, 0.0);
+	    	ind = GLPK.new_intArray(adSpaceLength);
+	    	for (int i = 1; i <= adSpaceLength; i++) {
+	    		GLPK.intArray_setitem(ind, i, i);
+	    	}
+	    	
+	    	val = GLPK.new_doubleArray(adSpaceLength);
+	    	for (int i = 1; i <= adSpaceLength; i++) {
+	    		GLPK.doubleArray_setitem(val, i, price[i - 1] - cpa * icvr[i - 1]);
+	    	}
+	    	
+	    	GLPK.glp_set_mat_row(lp, 2, adSpaceLength, ind, val);
 		    GLPK.delete_intArray(ind);
 	    	GLPK.delete_doubleArray(val);
 
@@ -73,19 +88,17 @@ public class Lp {
 	    	for (int i = 1; i <= adSpaceLength; i++) {
 	    		GLPK.glp_set_obj_coef(lp, i, 1.0);
 	    	}
-	    	// GLPK.glp_set_obj_coef(lp, 1, 1.0);
-	    	// GLPK.glp_set_obj_coef(lp, 2, 1.0);
-
+	    	
 	    	parm = new glp_smcp();
 	    	GLPK.glp_init_smcp(parm);
 	    	ret = GLPK.glp_simplex(lp, parm);
-
+	    	
 	    	if (ret == 0) {
-				write_lp_solution(lp);
+				imps = write_lp_solution(lp);
 	    	} else {
 				System.out.println("The problem could not be solved");
 	    	}
-
+	    	
 	    	GLPK.glp_delete_prob(lp);
 		} catch (GlpkException ex) {
 	    	ex.printStackTrace();
@@ -94,19 +107,23 @@ public class Lp {
 		return imps;
 	}
 
-	private void write_lp_solution(glp_prob lp) {
+	private long[] write_lp_solution(glp_prob lp) {
 		int n;
-		String name;
+		// String name;
 		double val;
+		long[] tempImps = new long[adSpaceLength];
 
-		name = GLPK.glp_get_obj_name(lp);
+		// name = GLPK.glp_get_obj_name(lp);
 		val = GLPK.glp_get_obj_val(lp);
-		System.out.println(name + " = " + val);
+		// System.out.println(name + " = " + val);
 		n = GLPK.glp_get_num_cols(lp);
 		for (int i = 1; i <= n; i++) {
-			name = GLPK.glp_get_col_name(lp, i);
+			// name = GLPK.glp_get_col_name(lp, i);
 			val = GLPK.glp_get_col_prim(lp, i);
-			System.out.println(name + " = " + val);
+			tempImps[i - 1] = (long)val;
+			// System.out.println(name + " = " + tempImps[i - 1]);
 		}
+		
+		return tempImps;
 	}
 }

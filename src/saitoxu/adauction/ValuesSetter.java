@@ -60,15 +60,19 @@ public class ValuesSetter {
 	public double[] setBudget() {
 		double budget[] = new double[ads.length];
 		try {
-			FileReader fR = new FileReader("/Users/Yosuke/documents/workspace/adauction/src/ads.csv");
+			FileReader fR = new FileReader("/Users/Yosuke/documents/workspace/adauction/src/start.csv");
 			BufferedReader bR = new BufferedReader(fR);
 			String str = bR.readLine();
 			while (str != null) {
 				StringTokenizer sT = new StringTokenizer(str, ",");
-				int temp = Integer.parseInt(sT.nextToken());
+				int ad = Integer.parseInt(sT.nextToken());
+				int adSpace = Integer.parseInt(sT.nextToken());
 				for (int k = 0; k < ads.length; k++) {
-					if (temp == ads[k]) {
-						budget[k] = Double.parseDouble(sT.nextToken());
+					for (int l = 0; l < adSpaces.length; l++) {
+						if ((ad == ads[k]) && (adSpace == adSpaces[l])) {
+							sT.nextToken();
+							budget[k] += Double.parseDouble(sT.nextToken());
+						}
 					}
 				}
 				str = bR.readLine();
