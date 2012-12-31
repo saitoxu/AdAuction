@@ -2,10 +2,10 @@ package saitoxu.adauction;
 
 public class Organizer {
 	public static void main(String args[]) {
-		int maxChange = 500; // •ÏX‚Å‚«‚éãŒÀ’l
+		int maxChange = 1000; // •ÏX‚Å‚«‚éãŒÀ’l
 		int bidLength = 2500; // “üDŠz-ƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”ŠÖ”‚Ì“üDŠz‚Ìí—Ş‚ÌãŒÀ’l
-		int ads[] = {6578, 11270, 11614}; // L‚Ìí—Ş
-		int adSpaces[] = {60, 6105, 2341, 1712, 2337}; // L˜g‚Ìí—Ş
+		int ads[] = {10562, 11270, 6578, 9215, 11614}; // L‚Ìí—Ş
+		int adSpaces[] = {2341, 2337, 60, 6105, 1712}; // L˜g‚Ìí—Ş
 		double bid[][] = new double[adSpaces.length][bidLength]; // “üDŠzŠÖ”‚ğ“ü‚ê‚é”z—ñ
 		long imp[][] = new long[adSpaces.length][bidLength]; // “üDŠz‚É‘Î‰‚µ‚½ƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”‚ğ“ü‚ê‚é”z—ñ
 		double budget[] = new double[ads.length]; // L‚²‚Æ‚Ì—\Z
@@ -33,12 +33,45 @@ public class Organizer {
 			struct[i] = new GreedySearcher(budget[i], cpa[i], icvr[i], maxChange, adSpaces.length);
 		}
 		
-		while (true) {
+		for (int count = 0; count < 10000; count++) {
 			for (int i = 0; i < imps.length; i++) {
 				before2Imps[i] = beforeImps[i];
 				beforeImps[i] = imps[i];
 				imps[i] = struct[i].greedySearch(price, imps[i]);
 			}
+			
+			double[] realBudget = new double[ads.length];
+			for (int i = 0; i < ads.length; i++) {
+				for (int j = 0; j < adSpaces.length; j++) {
+					realBudget[i] += imps[i][j] * price[j];
+				}
+				System.out.print("realBudget[" + i + "] = " + realBudget[i]);
+				if (i == ads.length - 1) {
+					System.out.println();
+				} else {
+					System.out.print(", ");
+				}
+			}
+			double[] realCpa = new double[ads.length];
+			double convs = 0.0;
+			for (int i = 0; i < ads.length; i++) {
+				for (int j = 0; j < adSpaces.length; j++) {
+					convs += imps[i][j] * icvr[i][j];
+				}
+				if (convs != 0.0) {
+					realCpa[i] = realBudget[i] / convs;
+				}
+				System.out.print("realCpa[" + i + "] = " + realCpa[i]);
+				if (i == ads.length - 1) {
+					System.out.println();
+				} else {
+					System.out.print(", ");
+				}
+				convs = 0.0;
+			}
+			
+			// ‰¿Ši‚ğ’²®
+			price = mM.setPrice(price, bid, imp, sum, start);
 			for (int i = 0; i < ads.length; i++) {
 				for (int j = 0; j < adSpaces.length; j++) {
 					System.out.print("imps[" + i + "][" + j + "] = " + imps[i][j]);
@@ -66,29 +99,38 @@ public class Organizer {
 					System.out.print(", ");
 				}
 			}
-			// ‰¿Ši‚ğ’²®
-			price = mM.setPrice(price, bid, imp, sum, start);
+			for (int i = 0; i < ads.length; i++) {
+				System.out.print("budget[" + i + "] = " + budget[i]);
+				if (i == ads.length - 1) {
+					System.out.println();
+				} else {
+					System.out.print(", ");
+				}
+			}
+			for (int i = 0; i < ads.length; i++) {
+				System.out.print("cpa[" + i + "] = " + cpa[i]);
+				if (i == ads.length - 1) {
+					System.out.println();
+				} else {
+					System.out.print(", ");
+				}
+			}
+			for (int i = 0; i < adSpaces.length; i++) {
+				System.out.print("start[" + i + "] = " + start[i]);
+				if (i == adSpaces.length - 1) {
+					System.out.println();
+				} else {
+					System.out.print(", ");
+				}
+			}
+			
 			// I—¹”»’è
 			if (mM.isEndCalculation(imps, before2Imps)) {
 				break;
 			}
 		}
-		
-		for (int i = 0; i < ads.length; i++) {
-			System.out.print("budget[" + i + "] = " + budget[i]);
-			if (i == ads.length - 1) {
-				System.out.println();
-			} else {
-				System.out.print(", ");
-			}
-		}
-		for (int i = 0; i < ads.length; i++) {
-			System.out.print("cpa[" + i + "] = " + cpa[i]);
-			if (i == ads.length - 1) {
-				System.out.println();
-			} else {
-				System.out.print(", ");
-			}
-		}
+
+		// ‚È‚ñ‚©ƒƒ‚ƒŠƒŠ[ƒN‚ ‚é‚ñ‚ÅC³i‚½‚Ü‚ÉƒoƒO‚éLEL˜g‚Ì‘g‚İ‡‚í‚¹‚ ‚èj
+		// ÀÛ‚ÌƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”‚Æ”äŠr
 	}
 }

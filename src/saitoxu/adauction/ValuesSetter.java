@@ -151,9 +151,9 @@ public class ValuesSetter {
 						int temp = Integer.parseInt(sT.nextToken());
 						if (Integer.parseInt(sT.nextToken()) == adSpaces[j]) {
 							if (temp == 0) {
-								start[j] += Long.parseLong(sT.nextToken());
+								start[j] += Long.parseLong(sT.nextToken()); // L”‚¾‚¯‘«‚³‚ê‚é
 							} else if (temp == ads[i]) {
-								start[j] -= 3 * Long.parseLong(sT.nextToken());
+								start[j] -= ads.length * Long.parseLong(sT.nextToken()); // L”‚¾‚¯ˆø‚­
 							}
 						}
 						
@@ -168,7 +168,7 @@ public class ValuesSetter {
 			e.printStackTrace();
 		}
 		for (int i = 0; i < start.length; i++) {
-			start[i] /= start.length;
+			start[i] /= ads.length; // L”‚ÅŠ„‚é
 		}
 		return start;
 	}

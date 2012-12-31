@@ -48,15 +48,17 @@ public class Lp {
 	    	}
 	    	
 		    // §–ñğŒi—\Z§–ñ‚ÆCPA§–ñ‚Ì2‚Âj
+	    	// §–ñ‚Ìg‚¢•ûŠÔˆá‚Á‚Ä‚éŠ´‚ ‚é‚È
 	    	GLPK.glp_add_rows(lp, 2);
 		    GLPK.glp_set_row_name(lp, 1, "c1");
 		    GLPK.glp_set_row_bnds(lp, 1, GLPKConstants.GLP_UP, 0.0, budget);
-	    	ind = GLPK.new_intArray(adSpaceLength);
+		    System.out.println("Budget = " + budget);
+	    	ind = GLPK.new_intArray(adSpaceLength + 1);
 	    	for (int i = 1; i <= adSpaceLength; i++) {
 	    		GLPK.intArray_setitem(ind, i, i);
 	    	}
 	    	
-	    	val = GLPK.new_doubleArray(adSpaceLength);
+	    	val = GLPK.new_doubleArray(adSpaceLength + 1);
 	    	for (int i = 1; i <= adSpaceLength; i++) {
 	    		GLPK.doubleArray_setitem(val, i, price[i - 1]);
 	    	}
@@ -67,12 +69,12 @@ public class Lp {
 	    	
 	    	GLPK.glp_set_row_name(lp, 2, "c2");
 		    GLPK.glp_set_row_bnds(lp, 2, GLPKConstants.GLP_UP, 0.0, 0.0);
-	    	ind = GLPK.new_intArray(adSpaceLength);
+	    	ind = GLPK.new_intArray(adSpaceLength + 1);
 	    	for (int i = 1; i <= adSpaceLength; i++) {
 	    		GLPK.intArray_setitem(ind, i, i);
 	    	}
 	    	
-	    	val = GLPK.new_doubleArray(adSpaceLength);
+	    	val = GLPK.new_doubleArray(adSpaceLength + 1);
 	    	for (int i = 1; i <= adSpaceLength; i++) {
 	    		GLPK.doubleArray_setitem(val, i, price[i - 1] - cpa * icvr[i - 1]);
 	    	}
