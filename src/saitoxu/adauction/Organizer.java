@@ -1,23 +1,26 @@
 package saitoxu.adauction;
 
+import java.io.*;
+
 public class Organizer {
-	public static void main(String args[]) {
-		int maxChange = 1000; // •ÏX‚Å‚«‚éãŒÀ’l
-		int bidLength = 2500; // “üDŠz-ƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”ŠÖ”‚Ì“üDŠz‚Ìí—Ş‚ÌãŒÀ’l
-		int ads[] = {10562, 11270, 6578, 9215, 11614}; // L‚Ìí—Ş
-		int adSpaces[] = {2341, 2337, 60, 6105, 1712}; // L˜g‚Ìí—Ş
-		double bid[][] = new double[adSpaces.length][bidLength]; // “üDŠzŠÖ”‚ğ“ü‚ê‚é”z—ñ
-		long imp[][] = new long[adSpaces.length][bidLength]; // “üDŠz‚É‘Î‰‚µ‚½ƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”‚ğ“ü‚ê‚é”z—ñ
-		double budget[] = new double[ads.length]; // L‚²‚Æ‚Ì—\Z
-		double cpa[] = new double[ads.length]; // L‚²‚Æ‚Ìcpa
-		double icvr[][] = new double[ads.length][adSpaces.length]; // LCL˜g‚²‚Æ‚Ìicvr
-		long start[] = new long[adSpaces.length]; // ‘¼‚ÌL‚ªŠeL˜g‚ÅŠl“¾‚µ‚Ä‚¢‚éƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”
-		long sum[] = new long[adSpaces.length]; // ŠeL˜g‚ÌƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”‚Ì‡Œv’l
-		double price[] = new double[adSpaces.length]; // L˜g‚Ö‚Ì“üDŠz
-		long beforeImps[][] = new long[ads.length][adSpaces.length]; // 1‚Â‘O‚ÌƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”
-		long before2Imps[][] = new long[ads.length][adSpaces.length]; // 2‚Â‘O‚ÌƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”iI—¹ğŒ‚Ì”»’è‚Ég‚¤j
-		long imps[][] = new long[ads.length][adSpaces.length]; // ƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”
-		
+	public static void main(String args[]) throws IOException {
+		int maxChange = 1000;
+		int bidLength = 140000;
+		int ads[] = { 6578, 9215, 10562, 11270, 11614 };
+		int adSpaces[] = { 60, 1712, 2337, 2341, 6105 };
+		double bid[][] = new double[adSpaces.length][bidLength];
+		long imp[][] = new long[adSpaces.length][bidLength];
+		double budget[] = new double[ads.length];
+		double cpa[] = new double[ads.length];
+		double icvr[][] = new double[ads.length][adSpaces.length];
+		long start[] = new long[adSpaces.length];
+		long sum[] = new long[adSpaces.length];
+		double price[] = new double[adSpaces.length];
+		long imps[][] = new long[ads.length][adSpaces.length];
+		long upperBound[][] = new long[ads.length][adSpaces.length];
+
+		// å®Ÿè¡Œæ™‚é–“è¨ˆæ¸¬ç”¨ï¼ˆé–‹å§‹æ™‚åˆ»ï¼‰
+		long ready = System.currentTimeMillis();
 		ValuesSetter setter = new ValuesSetter(ads, adSpaces);
 		MarketModel mM = new MarketModel();
 		bid = setter.setBid(bid[0].length);
@@ -25,112 +28,140 @@ public class Organizer {
 		budget = setter.setBudget();
 		cpa = setter.setCpa();
 		icvr = setter.setIcvr();
-		start = setter.setStart(); // ŠeL˜g‚ÌƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”‚Ì‰Šú’li‘¼‚ÌL‚ªŠl“¾‚µ‚Ä‚é•ªj
+		start = setter.setStart();
+		upperBound = setter.setUpperLimit();
 		price = mM.setBid(adSpaces.length, bid, imp, start);
-		GreedySearcher struct[] = new GreedySearcher[ads.length];
-		
+		Lp struct[] = new Lp[ads.length];
+
 		for (int i = 0; i < ads.length; i++) {
-			struct[i] = new GreedySearcher(budget[i], cpa[i], icvr[i], maxChange, adSpaces.length);
+			struct[i] = new Lp(budget[i], cpa[i], icvr[i], maxChange,
+					upperBound[i], adSpaces.length);
 		}
-		
+		// File file = new File(
+		// "/Users/Yosuke/AdAuction/output20130315/11614_1712_0starts_obj_is_conv_max.csv");
+		// PrintWriter pw = new PrintWriter(new BufferedWriter(
+		// new FileWriter(file)));
 		for (int count = 0; count < 10000; count++) {
+			System.out.println("----------------------------------------"
+					+ count + "----------------------------------------");
 			for (int i = 0; i < imps.length; i++) {
-				before2Imps[i] = beforeImps[i];
-				beforeImps[i] = imps[i];
-				imps[i] = struct[i].greedySearch(price, imps[i]);
-			}
-			
-			double[] realBudget = new double[ads.length];
-			for (int i = 0; i < ads.length; i++) {
-				for (int j = 0; j < adSpaces.length; j++) {
-					realBudget[i] += imps[i][j] * price[j];
-				}
-				System.out.print("realBudget[" + i + "] = " + realBudget[i]);
-				if (i == ads.length - 1) {
-					System.out.println();
-				} else {
-					System.out.print(", ");
-				}
-			}
-			double[] realCpa = new double[ads.length];
-			double convs = 0.0;
-			for (int i = 0; i < ads.length; i++) {
-				for (int j = 0; j < adSpaces.length; j++) {
-					convs += imps[i][j] * icvr[i][j];
-				}
-				if (convs != 0.0) {
-					realCpa[i] = realBudget[i] / convs;
-				}
-				System.out.print("realCpa[" + i + "] = " + realCpa[i]);
-				if (i == ads.length - 1) {
-					System.out.println();
-				} else {
-					System.out.print(", ");
-				}
-				convs = 0.0;
-			}
-			
-			// ‰¿Ši‚ğ’²®
-			price = mM.setPrice(price, bid, imp, sum, start);
-			for (int i = 0; i < ads.length; i++) {
-				for (int j = 0; j < adSpaces.length; j++) {
-					System.out.print("imps[" + i + "][" + j + "] = " + imps[i][j]);
-					if (j == adSpaces.length - 1) {
-						System.out.println();
-					} else {
-						System.out.print(", ");
-					}
-				}
-			}
-			for (int i = 0; i < price.length; i++) {
-				System.out.print("price[" + i + "] = " + price[i]);
-				if (i == price.length - 1) {
-					System.out.println();
-				} else {
-					System.out.print(", ");
-				}
+				imps[i] = struct[i].solveLp(price, imps[i]);
 			}
 			sum = mM.setSum(imps);
-			for (int i = 0; i < sum.length; i++) {
-				System.out.print("sum[" + i + "] = " + sum[i]);
-				if (i == sum.length - 1) {
+			printLog(ads, adSpaces, imps, price, sum, icvr, budget, cpa, start);
+			// pw.println(imps[2][0]);
+			price = mM.setPrice(price, bid, imp, sum, start);
+		}
+		// pw.close();
+
+		// å®Ÿè¡Œæ™‚é–“è¨ˆæ¸¬ç”¨ï¼ˆçµ‚äº†æ™‚åˆ»ï¼‰
+		long stop = System.currentTimeMillis();
+		System.out.println("å®Ÿè¡Œæ™‚é–“:" + (stop - ready) + "ms");
+	}
+
+	private static void printLog(int[] ads, int[] adSpaces, long[][] imps,
+			double[] price, long[] sum, double[][] icvr, double[] budget,
+			double[] cpa, long[] start) {
+		for (int i = 0; i < ads.length; i++) {
+			for (int j = 0; j < adSpaces.length; j++) {
+				System.out.print("imps[" + i + "][" + j + "] = " + imps[i][j]);
+				if (j == adSpaces.length - 1) {
 					System.out.println();
 				} else {
 					System.out.print(", ");
 				}
-			}
-			for (int i = 0; i < ads.length; i++) {
-				System.out.print("budget[" + i + "] = " + budget[i]);
-				if (i == ads.length - 1) {
-					System.out.println();
-				} else {
-					System.out.print(", ");
-				}
-			}
-			for (int i = 0; i < ads.length; i++) {
-				System.out.print("cpa[" + i + "] = " + cpa[i]);
-				if (i == ads.length - 1) {
-					System.out.println();
-				} else {
-					System.out.print(", ");
-				}
-			}
-			for (int i = 0; i < adSpaces.length; i++) {
-				System.out.print("start[" + i + "] = " + start[i]);
-				if (i == adSpaces.length - 1) {
-					System.out.println();
-				} else {
-					System.out.print(", ");
-				}
-			}
-			
-			// I—¹”»’è
-			if (mM.isEndCalculation(imps, before2Imps)) {
-				break;
 			}
 		}
 
-		// ‚È‚ñ‚©ƒƒ‚ƒŠƒŠ[ƒN‚ ‚é‚ñ‚ÅC³i‚½‚Ü‚ÉƒoƒO‚éLEL˜g‚Ì‘g‚İ‡‚í‚¹‚ ‚èj
-		// ÀÛ‚ÌƒCƒ“ƒvƒŒƒbƒVƒ‡ƒ“”‚Æ”äŠr
+		for (int i = 0; i < price.length; i++) {
+			System.out.print("price[" + i + "] = " + price[i]);
+			if (i == price.length - 1) {
+				System.out.println();
+			} else {
+				System.out.print(", ");
+			}
+		}
+
+		for (int i = 0; i < sum.length; i++) {
+			System.out.print("sum[" + i + "] = " + sum[i]);
+			if (i == sum.length - 1) {
+				System.out.println();
+			} else {
+				System.out.print(", ");
+			}
+		}
+
+		double[] realBudget = new double[ads.length];
+		for (int i = 0; i < ads.length; i++) {
+			for (int j = 0; j < adSpaces.length; j++) {
+				realBudget[i] += imps[i][j] * price[j];
+			}
+			System.out.print("realBudget[" + i + "] = " + realBudget[i]);
+			if (i == ads.length - 1) {
+				System.out.println();
+			} else {
+				System.out.print(", ");
+			}
+		}
+
+		double[] realCpa = new double[ads.length];
+		double convs = 0.0;
+		for (int i = 0; i < ads.length; i++) {
+			for (int j = 0; j < adSpaces.length; j++) {
+				convs += imps[i][j] * icvr[i][j];
+			}
+			if (convs != 0.0) {
+				realCpa[i] = realBudget[i] / convs;
+			}
+			System.out.print("realCpa[" + i + "] = " + realCpa[i]);
+			if (i == ads.length - 1) {
+				System.out.println();
+			} else {
+				System.out.print(", ");
+			}
+			convs = 0.0;
+		}
+
+		for (int i = 0; i < ads.length; i++) {
+			System.out.print("budget[" + i + "] = " + budget[i]);
+			if (i == ads.length - 1) {
+				System.out.println();
+			} else {
+				System.out.print(", ");
+			}
+		}
+
+		for (int i = 0; i < ads.length; i++) {
+			System.out.print("cpa[" + i + "] = " + cpa[i]);
+			if (i == ads.length - 1) {
+				System.out.println();
+			} else {
+				System.out.print(", ");
+			}
+		}
+
+		for (int i = 0; i < adSpaces.length; i++) {
+			System.out.print("start[" + i + "] = " + start[i]);
+			if (i == adSpaces.length - 1) {
+				System.out.println();
+			} else {
+				System.out.print(", ");
+			}
+		}
+
+		boolean flag = true;
+		for (int i = 0; i < ads.length; i++) {
+			if (realBudget[i] > budget[i] || realCpa[i] > cpa[i]) {
+				System.out.println();
+				System.out.println("Constraint is NOT satisfied.");
+				flag = false;
+				break;
+			}
+		}
+		if (flag) {
+			System.out.println();
+			System.out.println("Constraint is satisfied.");
+		}
+		return;
 	}
 }
